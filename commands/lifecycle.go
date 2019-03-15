@@ -51,7 +51,7 @@ func serviceConfig(cmd *cobra.Command, args []string) {
 	}
 
 	if env.VerifyEnvironment() {
-		//exec.Command("/bin/sh", "-c", "docker-compose -f build-compose.yaml up").Run()
+		exec.Command("/bin/sh", "-c", "docker-compose -f build-compose.yaml up").Run()
 	}
 }
 
