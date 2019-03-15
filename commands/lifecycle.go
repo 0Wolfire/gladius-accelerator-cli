@@ -56,7 +56,9 @@ func serviceConfig(cmd *cobra.Command, args []string) {
 }
 
 func serviceStart(*cobra.Command, []string) {
-	exec.Command("/bin/sh", "-c", "docker-compose up -d").Run()
+	if env.VerifyEnvironment() {
+		exec.Command("/bin/sh", "-c", "docker-compose up -d").Run()
+	}
 }
 
 func serviceStop(*cobra.Command, []string) {
@@ -68,11 +70,13 @@ func serviceUpdate(*cobra.Command, []string) {
 	exec.Command("/bin/sh", "-c", "docker-compose -f build-compose.yaml down").Run()
 	exec.Command("/bin/sh", "-c", "docker-compose down").Run()
 
-	exec.Command("/bin/sh", "-c", "docker-compose -f build-compose.yaml pull").Run()
-	exec.Command("/bin/sh", "-c", "docker-compose pull").Run()
+	if env.VerifyEnvironment() {
+		exec.Command("/bin/sh", "-c", "docker-compose -f build-compose.yaml pull").Run()
+		exec.Command("/bin/sh", "-c", "docker-compose pull").Run()
 
-	exec.Command("/bin/sh", "-c", "docker-compose -f build-compose.yaml up").Run()
-	exec.Command("/bin/sh", "-c", "docker-compose up -d").Run()
+		exec.Command("/bin/sh", "-c", "docker-compose -f build-compose.yaml up").Run()
+		exec.Command("/bin/sh", "-c", "docker-compose up -d").Run()
+	}
 }
 
 func init() {
