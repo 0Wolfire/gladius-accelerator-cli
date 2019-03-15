@@ -1,8 +1,11 @@
 package commands
 
 import (
+	"fmt"
 	"github.com/spf13/cobra"
 	"gladius-accelerator-cli/env"
+	"log"
+	"os"
 	"os/exec"
 )
 
@@ -38,44 +41,57 @@ func serviceConfig(cmd *cobra.Command, args []string) {
 	domain, _ := cmd.Flags().GetString("domain")
 	if domain != "" {
 		env.SetDomain(domain)
+		fmt.Println("Domain name set")
 	}
 
 	email, _ := cmd.Flags().GetString("email")
 	if email != "" {
 		env.SetEmail(email)
+		fmt.Println("Certbot email set")
 	}
 
 	origin, _ := cmd.Flags().GetString("origin")
 	if origin != "" {
 		env.SetOriginHost(origin)
+		fmt.Println("Origin server IP address set")
 	}
 
 	if env.VerifyEnvironment() {
-		exec.Command("/bin/sh", "-c", "docker-compose -f build-compose.yaml up").Run()
+		runCommand("Environment build", "docker-compose -f build-compose.yaml up")
 	}
 }
 
 func serviceStart(*cobra.Command, []string) {
 	if env.VerifyEnvironment() {
-		exec.Command("/bin/sh", "-c", "docker-compose up -d").Run()
+		runCommand("Masternode start", "docker-compose up -d")
 	}
 }
 
 func serviceStop(*cobra.Command, []string) {
-	exec.Command("/bin/sh", "-c", "docker-compose -f build-compose.yaml down").Run()
-	exec.Command("/bin/sh", "-c", "docker-compose down").Run()
+	runCommand("Environment teardown", "docker-compose -f build-compose.yaml down")
+	runCommand("Masternode teardown", "docker-compose down")
 }
 
 func serviceUpdate(*cobra.Command, []string) {
-	exec.Command("/bin/sh", "-c", "docker-compose -f build-compose.yaml down").Run()
-	exec.Command("/bin/sh", "-c", "docker-compose down").Run()
+	runCommand("Environment teardown", "docker-compose -f build-compose.yaml down")
+	runCommand("Masternode teardown", "docker-compose down")
 
 	if env.VerifyEnvironment() {
-		exec.Command("/bin/sh", "-c", "docker-compose -f build-compose.yaml pull").Run()
-		exec.Command("/bin/sh", "-c", "docker-compose pull").Run()
+		runCommand("Environment update", "docker-compose -f build-compose.yaml pull")
+		runCommand("Masternode update", "docker-compose pull")
 
-		exec.Command("/bin/sh", "-c", "docker-compose -f build-compose.yaml up").Run()
-		exec.Command("/bin/sh", "-c", "docker-compose up -d").Run()
+		runCommand("Environment build", "docker-compose -f build-compose.yaml up")
+		runCommand("Masternode start", "docker-compose up -d")
+	}
+}
+
+func runCommand(message, command string) {
+	cmd := exec.Command("/bin/sh", "-c", command)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		log.Fatalf("%s failed with %s\n", message, err)
 	}
 }
 
