@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"os"
 )
 
@@ -46,6 +47,15 @@ var rootCommand = &cobra.Command{
 
 // Execute main entry point to run the CLI
 func Execute() {
+	viper.SetConfigName("gladius-accelerator")
+	viper.AddConfigPath(".")
+	viper.AddConfigPath("/root/.gladius-accelerator")
+	viper.AddConfigPath("$HOME/.gladius-accelerator")
+	viper.AddConfigPath("$HOME/.config/gladius-accelerator")
+
+	viper.ReadInConfig()
+	viper.SetDefault("DIR_PATH", "/root/.gladius-accelerator")
+
 	if err := rootCommand.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

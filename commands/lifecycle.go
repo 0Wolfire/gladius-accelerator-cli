@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"gladius-accelerator-cli/env"
 	"log"
 	"os"
@@ -57,24 +58,26 @@ func serviceConfig(cmd *cobra.Command, args []string) {
 	}
 
 	if env.VerifyEnvironment() {
+		runCommand("Environment teardown", "docker-compose -f build-compose.yaml down --remove-orphans")
 		runCommand("Environment build", "docker-compose -f build-compose.yaml up")
 	}
 }
 
 func serviceStart(*cobra.Command, []string) {
 	if env.VerifyEnvironment() {
+		runCommand("Masternode teardown", "docker-compose down --remove-orphans")
 		runCommand("Masternode start", "docker-compose up -d")
 	}
 }
 
 func serviceStop(*cobra.Command, []string) {
-	runCommand("Environment teardown", "docker-compose -f build-compose.yaml down")
-	runCommand("Masternode teardown", "docker-compose down")
+	runCommand("Environment teardown", "docker-compose -f build-compose.yaml down --remove-orphans")
+	runCommand("Masternode teardown", "docker-compose down --remove-orphans")
 }
 
 func serviceUpdate(*cobra.Command, []string) {
-	runCommand("Environment teardown", "docker-compose -f build-compose.yaml down")
-	runCommand("Masternode teardown", "docker-compose down")
+	runCommand("Environment teardown", "docker-compose -f build-compose.yaml down --remove-orphans")
+	runCommand("Masternode teardown", "docker-compose down --remove-orphans")
 
 	if env.VerifyEnvironment() {
 		runCommand("Environment update", "docker-compose -f build-compose.yaml pull")
@@ -87,6 +90,7 @@ func serviceUpdate(*cobra.Command, []string) {
 
 func runCommand(message, command string) {
 	cmd := exec.Command("/bin/sh", "-c", command)
+	cmd.Dir = viper.GetString("DIR_PATH")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()

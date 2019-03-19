@@ -3,6 +3,7 @@ package env
 import (
 	"fmt"
 	"github.com/joho/godotenv"
+	"github.com/spf13/viper"
 	"io/ioutil"
 	"log"
 	"os"
@@ -10,9 +11,11 @@ import (
 )
 
 func VerifyEnvironment() bool {
-	err := godotenv.Load("./.env")
+	dirPath := viper.GetString("DIR_PATH")
+
+	err := godotenv.Load(dirPath + "/.env")
 	if err != nil {
-		fmt.Println("No .env file found, please copy the sample file via `cp env.sample .env` or run the config command again with the necessary flags: -e -d -o")
+		fmt.Println("No .env file found, run the config command again with the necessary flags: -e -d -o")
 		return false
 	}
 
@@ -38,7 +41,8 @@ func VerifyEnvironment() bool {
 }
 
 func writeEnvVariable(key, value string) {
-	envFile, err := godotenv.Read("./.env")
+	dirPath := viper.GetString("DIR_PATH")
+	envFile, err := godotenv.Read(dirPath + "/.env")
 	envFile[key] = value
 
 	content, err := godotenv.Marshal(envFile)
@@ -47,10 +51,10 @@ func writeEnvVariable(key, value string) {
 	}
 
 	formattedContent := strings.Replace(content, "\"", "", -1)
-	err = ioutil.WriteFile("./.env", []byte(formattedContent), 0644)
+	err = ioutil.WriteFile(dirPath+"/.env", []byte(formattedContent), 0644)
 
 	if err != nil {
-		log.Fatalf("Error writing %s to .env file", value)
+		log.Fatalf("Error writing %s to %s/.env file", value, dirPath)
 	}
 }
 
